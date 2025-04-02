@@ -28,6 +28,7 @@ use crate::FastGraph;
 /// Special graph data-structure that is identical to `FastGraph` except that it uses u32 integers
 /// instead of usize integers. This is used to store a `FastGraph` in a 32bit representation on disk
 /// when using a 64bit system.
+#[cfg_attr(feature = "rkyv", derive(rkyv::Archive))]
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct FastGraph32 {
     num_nodes: u32,
@@ -68,6 +69,7 @@ impl FastGraph32 {
 }
 
 /// 32bit equivalent to `FastGraphEdge`, see `FastGraph32` docs.
+#[cfg_attr(feature = "rkyv", derive(rkyv::Archive))]
 #[derive(Serialize, Deserialize, Debug, Clone, Copy)]
 pub struct FastGraphEdge32 {
     pub base_node: u32,

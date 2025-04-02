@@ -23,6 +23,7 @@ use serde::Serialize;
 use crate::constants::Weight;
 use crate::constants::{EdgeId, NodeId, INVALID_EDGE};
 
+#[cfg_attr(feature = "rkyv", derive(rkyv::Archive))]
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct FastGraph {
     num_nodes: usize,
@@ -83,6 +84,7 @@ impl FastGraph {
     }
 }
 
+#[cfg_attr(feature = "rkyv", derive(rkyv::Archive))]
 #[derive(Serialize, Deserialize, Debug, Clone, Copy)]
 pub struct FastGraphEdge {
     // todo: the base_node is 'redundant' for the routing query so to say, but makes the implementation easier for now
