@@ -26,30 +26,30 @@ use crate::constants::Weight;
 use crate::constants::{EdgeId, NodeId, INVALID_EDGE, INVALID_NODE};
 use crate::fast_graph::FastGraphEdge;
 
-use super::fast_graph::FastGraph;
+use super::fast_graph::{FastGraph, FastGraphVec};
 use super::input_graph::InputGraph;
 use super::preparation_graph::PreparationGraph;
 use crate::node_contractor;
 use crate::witness_search::WitnessSearch;
 
 pub struct FastGraphBuilder {
-    fast_graph: FastGraph,
+    fast_graph: FastGraphVec,
     num_nodes: usize,
 }
 
 impl FastGraphBuilder {
     fn new(input_graph: &InputGraph) -> Self {
         FastGraphBuilder {
-            fast_graph: FastGraph::new(input_graph.get_num_nodes()),
+            fast_graph: FastGraphVec::new(input_graph.get_num_nodes()),
             num_nodes: input_graph.get_num_nodes(),
         }
     }
 
-    pub fn build(input_graph: &InputGraph) -> FastGraph {
+    pub fn build(input_graph: &InputGraph) -> FastGraphVec {
         FastGraphBuilder::build_with_params(input_graph, &Params::default())
     }
 
-    pub fn build_with_params(input_graph: &InputGraph, params: &Params) -> FastGraph {
+    pub fn build_with_params(input_graph: &InputGraph, params: &Params) -> FastGraphVec {
         let mut builder = FastGraphBuilder::new(input_graph);
         builder.run_contraction(input_graph, params);
         builder.fast_graph
@@ -58,7 +58,7 @@ impl FastGraphBuilder {
     pub fn build_with_order(
         input_graph: &InputGraph,
         order: &[NodeId],
-    ) -> Result<FastGraph, String> {
+    ) -> Result<FastGraphVec, String> {
         FastGraphBuilder::build_with_order_with_params(
             input_graph,
             order,
@@ -70,7 +70,7 @@ impl FastGraphBuilder {
         input_graph: &InputGraph,
         order: &[NodeId],
         params: &ParamsWithOrder,
-    ) -> Result<FastGraph, String> {
+    ) -> Result<FastGraphVec, String> {
         if input_graph.get_num_nodes() != order.len() {
             return Err(String::from(
                 "The given order must have as many nodes as the input graph",
@@ -413,8 +413,8 @@ mod tests {
         assert_path(&fast_graph, 4, 3, 15, vec![4, 2, 1, 3]);
     }
 
-    fn assert_path(
-        fast_graph: &FastGraph,
+    fn assert_path<G: FastGraph>(
+        fast_graph: &G,
         source: NodeId,
         target: NodeId,
         weight: Weight,
@@ -606,9 +606,9 @@ mod tests {
         );
     }
 
-    fn assert_path_multiple_sources_and_targets(
+    fn assert_path_multiple_sources_and_targets<G: FastGraph>(
         path_calculator: &mut PathCalculator,
-        fast_graph: &FastGraph,
+        fast_graph: &G,
         sources: Vec<(NodeId, Weight)>,
         targets: Vec<(NodeId, Weight)>,
         expected_nodes: Vec<NodeId>,
@@ -622,14 +622,14 @@ mod tests {
         assert_eq!(expected_weight, p.get_weight(), "unexpected weight");
     }
 
-    fn assert_path_multiple_sources_and_targets_not_found(
+    fn assert_path_multiple_sources_and_targets_not_found<G: FastGraph>(
         path_calculator: &mut PathCalculator,
-        fast_graph: &FastGraph,
+        fast_graph: &G,
         sources: Vec<(NodeId, Weight)>,
         targets: Vec<(NodeId, Weight)>,
     ) {
         let fast_path =
-            path_calculator.calc_path_multiple_sources_and_targets(&fast_graph, sources, targets);
+            path_calculator.calc_path_multiple_sources_and_targets(fast_graph, sources, targets);
         assert!(fast_path.is_none(), "there should be no path");
     }
 }
