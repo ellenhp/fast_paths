@@ -75,6 +75,29 @@ pub trait FastGraph {
     fn end_out_edges(&self, node: NodeId) -> usize {
         self.first_edge_ids_fwd()[self.ranks()[node] + 1]
     }
+
+    fn save_static(&self, path: PathBuf) -> Result<(), anyhow::Error> {
+        let mut file = File::create(path)?;
+        // Write the number of nodes.
+        file.write_all(&self.get_num_nodes().to_le_bytes())?;
+
+        // Write the lengths of each slice.
+        file.write_all(&(self.ranks().len() as u64).to_le_bytes())?;
+        file.write_all(&(self.edges_fwd().len() as u64).to_le_bytes())?;
+        file.write_all(&(self.first_edge_ids_fwd().len() as u64).to_le_bytes())?;
+        file.write_all(&(self.edges_bwd().len() as u64).to_le_bytes())?;
+        file.write_all(&(self.first_edge_ids_bwd().len() as u64).to_le_bytes())?;
+
+        // Write the actual data.
+        file.write_all(bytemuck::cast_slice(&self.ranks()))?;
+        file.write_all(bytemuck::cast_slice(&self.edges_fwd()))?;
+        file.write_all(bytemuck::cast_slice(&self.first_edge_ids_fwd()))?;
+        file.write_all(bytemuck::cast_slice(&self.edges_bwd()))?;
+        file.write_all(bytemuck::cast_slice(&self.first_edge_ids_bwd()))?;
+        file.sync_all()?;
+
+        Ok(())
+    }
 }
 
 #[repr(C)]
@@ -99,29 +122,6 @@ impl FastGraphVec {
             edges_bwd: vec![],
             first_edge_ids_bwd: vec![0; num_nodes + 1],
         }
-    }
-
-    pub fn save_static(&self, path: PathBuf) -> Result<(), anyhow::Error> {
-        let mut file = File::create(path)?;
-        // Write the number of nodes.
-        file.write_all(&self.num_nodes.to_le_bytes())?;
-
-        // Write the lengths of each slice.
-        file.write_all(&(self.ranks.len() as u64).to_le_bytes())?;
-        file.write_all(&(self.edges_fwd.len() as u64).to_le_bytes())?;
-        file.write_all(&(self.first_edge_ids_fwd.len() as u64).to_le_bytes())?;
-        file.write_all(&(self.edges_bwd.len() as u64).to_le_bytes())?;
-        file.write_all(&(self.first_edge_ids_bwd.len() as u64).to_le_bytes())?;
-
-        // Write the actual data.
-        file.write_all(bytemuck::cast_slice(&self.ranks))?;
-        file.write_all(bytemuck::cast_slice(&self.edges_fwd))?;
-        file.write_all(bytemuck::cast_slice(&self.first_edge_ids_fwd))?;
-        file.write_all(bytemuck::cast_slice(&self.edges_bwd))?;
-        file.write_all(bytemuck::cast_slice(&self.first_edge_ids_bwd))?;
-        file.sync_all()?;
-
-        Ok(())
     }
 }
 
