@@ -158,23 +158,25 @@ impl<'a> FastGraphStatic<'a> {
         let num_first_edge_ids_bwd = usize::from_le_bytes(mmap[..word_size].try_into()?);
         let data = &data[word_size..];
         let ranks = unsafe {
-            let s: &[usize] = cast_slice(&data[..num_ranks]);
+            let s: &[usize] = cast_slice(&data[..num_ranks * size_of::<usize>()]);
             slice::from_raw_parts(s.as_ptr(), s.len())
         };
         let edges_fwd = unsafe {
-            let s: &[FastGraphEdge] = cast_slice(&data[..num_edges_fwd]);
+            let s: &[FastGraphEdge] =
+                cast_slice(&data[..num_edges_fwd * size_of::<FastGraphEdge>()]);
             slice::from_raw_parts(s.as_ptr(), s.len())
         };
         let first_edge_ids_fwd = unsafe {
-            let s: &[EdgeId] = cast_slice(&data[..num_first_edge_ids_fwd]);
+            let s: &[EdgeId] = cast_slice(&data[..num_first_edge_ids_fwd * size_of::<EdgeId>()]);
             slice::from_raw_parts(s.as_ptr(), s.len())
         };
         let edges_bwd = unsafe {
-            let s: &[FastGraphEdge] = cast_slice(&data[..num_edges_bwd]);
+            let s: &[FastGraphEdge] =
+                cast_slice(&data[..num_edges_bwd * size_of::<FastGraphEdge>()]);
             slice::from_raw_parts(s.as_ptr(), s.len())
         };
         let first_edge_ids_bwd = unsafe {
-            let s: &[EdgeId] = cast_slice(&data[..num_first_edge_ids_bwd]);
+            let s: &[EdgeId] = cast_slice(&data[..num_first_edge_ids_bwd * size_of::<EdgeId>()]);
             slice::from_raw_parts(s.as_ptr(), s.len())
         };
 
